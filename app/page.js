@@ -1,71 +1,108 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const API_URL = '/api'
+const sansFont = "'Helvetica Neue', Helvetica, Arial, sans-serif"
 
 export default function PublicStore() {
-  const [state, setState] = useState(null)
+  const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [hovered, setHovered] = useState(null)
 
   useEffect(() => {
-    fetch(`${API_URL}/load`)
+    fetch('/api/load')
       .then(r => r.json())
-      .then(d => {
-        setState(d.data)
-        setLoading(false)
-      })
+      .then(d => { setData(d.data); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
 
-  if (loading) return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-gray-600">Loading store...</div></div>
-  if (!state) return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-gray-600">Store coming soon</div></div>
+  if (loading) {
+    return (
+      <div style={{ fontFamily: sansFont, background: '#fff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: 11, letterSpacing: '0.15em' }}>
+        LOADING
+      </div>
+    )
+  }
 
-  const { products = [], logo, heroBanner } = state
+  if (!data) {
+    return (
+      <div style={{ fontFamily: sansFont, background: '#fff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: 11, letterSpacing: '0.15em' }}>
+        STORE COMING SOON
+      </div>
+    )
+  }
+
+  const { products = [], logo } = data
+  const visible = products.filter(p => p.imgs && p.imgs.length > 0)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {heroBanner && (
-        <div className="w-full h-64 bg-gray-200 relative">
-          <img src={heroBanner} alt="Store banner" className="w-full h-full object-cover" />
-        </div>
-      )}
-
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex items-center gap-4">
-          {logo && <img src={logo} alt="Logo" className="h-12 w-auto" />}
-          <h1 className="text-2xl font-bold text-gray-900">Italcable Store</h1>
-        </div>
+    <div style={{ fontFamily: sansFont, background: '#fff', minHeight: '100vh' }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px 32px',
+        borderBottom: '1px solid #eee',
+      }}>
+        {logo ? (
+          <img src={logo} alt="logo" style={{ height: 32, objectFit: 'contain' }} />
+        ) : (
+          <div style={{
+            fontSize: 14,
+            letterSpacing: '0.2em',
+            color: '#333',
+            fontWeight: 500,
+          }}>
+            ITALCABLE
+          </div>
+        )}
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.map(p => (
-            <div key={p.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-              {p.imgs?.[0] && (
-                <div className="aspect-square bg-gray-100 relative group">
-                  <img 
-                    src={p.imgs[0]} 
-                    alt={p.name}
-                    className="w-full h-full object-cover"
-                  />
-                  {p.imgs[1] && (
-                    <img 
-                      src={p.imgs[1]} 
-                      alt={`${p.name} alternate`}
-                      className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity"
-                    />
-                  )}
+      {/* Product Grid */}
+      {visible.length === 0 ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '120px 32px', color: '#999', fontSize: 11, letterSpacing: '0.15em' }}>
+          NEW COLLECTION COMING SOON
+        </div>
+      ) : (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${Math.min(4, visible.length)}, 1fr)`,
+          gap: 0,
+        }}>
+          {visible.map(p => (
+            <div
+              key={p.id}
+              style={{ cursor: 'pointer', position: 'relative' }}
+              onMouseEnter={() => setHovered(p.id)}
+              onMouseLeave={() => setHovered(null)}
+            >
+              <div style={{
+                width: '100%',
+                aspectRatio: '3/4',
+                background: `url(${(hovered === p.id && p.imgs[1]) ? p.imgs[1] : p.imgs[0]}) center/cover`,
+                transition: 'background 0.3s ease',
+              }} />
+              <div style={{ padding: '12px 12px 20px' }}>
+                <div style={{
+                  fontSize: 12,
+                  color: '#333',
+                  letterSpacing: '0.03em',
+                  marginBottom: 4,
+                }}>
+                  {p.name}
                 </div>
-              )}
-              
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{p.name}</h3>
-                {p.price && <p className="text-xl font-bold text-gray-900">${p.price}</p>}
+                <div style={{
+                  fontSize: 12,
+                  color: '#999',
+                  letterSpacing: '0.03em',
+                }}>
+                  {p.price}
+                </div>
               </div>
             </div>
           ))}
         </div>
-      </div>
+      )}
     </div>
   )
 }
