@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const API_URL = 'http://178.105.58.20:3001/api'
+const API_URL = '/api'
 
 export default function PublicStore() {
   const [state, setState] = useState(null)
