@@ -180,7 +180,7 @@ export default function PublicStore() {
       ) : (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: `repeat(${Math.min(4, visible.length)}, 1fr)`,
+          gridTemplateColumns: 'repeat(4, 1fr)',
           gap: 0,
         }}>
           {visible.map(p => (
